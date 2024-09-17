@@ -18,6 +18,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pylint
+    - name: Remove invalid characters (optional)
+      run: |
+        python -c "import os; def remove_invalid_chars(dir_path): for filename in os.listdir(dir_path): if filename.endswith('.py'): filepath = os.path.join(dir_path, filename); with open(filepath, 'r', encoding='utf-8') as f: content = f.read(); content = content.replace('\u00A0', ' '); with open(filepath, 'w', encoding='utf-8') as f: f.write(content); remove_invalid_chars('.')"
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py')
