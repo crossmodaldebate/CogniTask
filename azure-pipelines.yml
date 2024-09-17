@@ -1,0 +1,55 @@
+# Pipeline para Análise Multimodal de Autoeficácia e Ansiedade
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  # Defina as variáveis de ambiente necessárias, como:
+  # - Caminho para os dados de código (Cognitask.txt)
+  # - Caminho para os dados de questionários (SPSES, STAI)
+  # - Caminho para os dados neurofisiológicos (EEG, ECG, EDA, eye tracking)
+  CODE_DATA_PATH: '$(Build.SourcesDirectory)/Cognitask.txt'
+  QUESTIONNAIRE_DATA_PATH: '$(Build.SourcesDirectory)/questionarios'
+  NEUROPHYSIOLOGICAL_DATA_PATH: '$(Build.SourcesDirectory)/neurofisiologia'
+
+steps:
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+    architecture: 'x64'
+  displayName: 'Usar Python 3.x'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Instalar Dependências'
+
+- script: |
+    python process_code_data.py $(CODE_DATA_PATH)
+  displayName: 'Processar Dados de Código (Cognitask)'
+
+- script: |
+    python process_questionnaire_data.py $(QUESTIONNAIRE_DATA_PATH)
+  displayName: 'Processar Dados de Questionários (SPSES, STAI)'
+
+- script: |
+    python process_neurophysiological_data.py $(NEUROPHYSIOLOGICAL_DATA_PATH)
+  displayName: 'Processar Dados Neurofisiológicos'
+
+- script: |
+    python analyze_data.py
+  displayName: 'Analisar Dados Multimodais'
+
+- script: |
+    python generate_report.py
+  displayName: 'Gerar Relatório de Análise'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'resultados_analise'
+  displayName: 'Publicar Resultados da Análise'
